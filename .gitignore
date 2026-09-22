@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build output
+dist/
+build/
+.next/
+
+# Environment files — never commit real secrets
+.env
+.env.local
+.env.*.local
+
+# Prisma
+backend/prisma/migrations/**/.prisma
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Test output
+coverage/
+.nyc_output/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*.DS_Store
+Thumbs.db
+
+# Docker
+.docker/
+
+# OS
+.DS_Store
