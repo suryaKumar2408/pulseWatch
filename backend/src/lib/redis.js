@@ -69,6 +69,10 @@ async function pingRedis() {
 /**
  * Returns connection options object for BullMQ queues and workers.
  * BullMQ instantiates its own dedicated Redis connections using these options.
+ *
+ * Critically, this function preserves TLS settings when the REDIS_URL uses
+ * the `rediss://` scheme (e.g. Upstash, ElastiCache). Without this, BullMQ
+ * creates plain TCP connections to a TLS-only endpoint, causing ECONNRESET.
  * @returns {object}
  */
 function getRedisConnectionOptions() {
@@ -77,12 +81,17 @@ function getRedisConnectionOptions() {
     const dbStr = parsed.pathname ? parsed.pathname.replace(/^\//, '') : '';
     const db = dbStr ? parseInt(dbStr, 10) : undefined;
 
+    // `rediss:` protocol signals a TLS-encrypted Redis endpoint.
+    // Pass `tls: { servername }` so ioredis performs a proper TLS handshake.
+    const isTls = parsed.protocol === 'rediss:' || parsed.searchParams.get('ssl') === 'true';
+
     return {
       host: parsed.hostname || 'localhost',
       port: parsed.port ? parseInt(parsed.port, 10) : 6379,
       username: parsed.username || undefined,
       password: parsed.password || undefined,
       ...(db !== undefined && !isNaN(db) ? { db } : {}),
+      ...(isTls ? { tls: { servername: parsed.hostname } } : {}),
       maxRetriesPerRequest: null,
     };
   } catch {
