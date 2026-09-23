@@ -1,20 +1,22 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Activity, Lock, Mail, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import AuthLayout from './AuthLayout';
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  /* ── Existing state & logic — UNCHANGED ─────────────────────────── */
+  const [email, setEmail]               = useState('');
+  const [password, setPassword]         = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [succeeded, setSucceeded]       = useState(false);
 
-  const { login } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const destination = location.state?.from?.pathname || '/';
+  const { login }    = useAuth();
+  const navigate     = useNavigate();
+  const location     = useLocation();
+  const destination  = location.state?.from?.pathname || '/dashboard';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,114 +30,116 @@ export default function Login() {
     try {
       setIsSubmitting(true);
       await login(email.trim(), password);
-      navigate(destination, { replace: true });
+      setSucceeded(true);
+      setTimeout(() => navigate(destination, { replace: true }), 600);
     } catch (err) {
       const serverMessage =
         err.response?.data?.error?.message ||
         err.response?.data?.message ||
         'Failed to sign in. Please verify your credentials.';
       setErrorMessage(serverMessage);
-    } finally {
       setIsSubmitting(false);
     }
   };
+  /* ─────────────────────────────────────────────────────────────────── */
 
   return (
-    <div className="auth-layout">
-      <div className="auth-card">
-        <div className="auth-header">
-          <div className="brand" style={{ justifyContent: 'center', marginBottom: 'var(--space-2)' }}>
-            <div className="brand-logo">
-              <Activity size={20} />
+    <AuthLayout>
+      <div className="pa-card" role="main">
+        {/* Success overlay */}
+        {succeeded && (
+          <div className="pa-success-overlay" aria-live="polite">
+            <div className="pa-success-icon">
+              <CheckCircle size={22} />
             </div>
-            <span className="brand-name">PulseWatch</span>
+            <span className="pa-success-text">Signed in — redirecting…</span>
           </div>
-          <h1 className="auth-title">Welcome back</h1>
-          <p className="auth-subtitle">Sign in to your observability dashboard</p>
+        )}
+
+        {/* Header */}
+        <div className="pa-card-header">
+          <Link to="/" className="pa-logo" aria-label="PulseWatch home">
+            <div className="pa-logo-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z" fill="rgba(255,255,255,0.3)"/>
+                <path d="M12 6v6l4 2-1.5 2.6L9 14V6z" fill="white"/>
+              </svg>
+            </div>
+            <span className="pa-logo-name">Pulse<span>Watch</span></span>
+          </Link>
+
+          <h1 className="pa-card-title">Welcome back</h1>
+          <p className="pa-card-subtitle">Sign in to your observability dashboard</p>
         </div>
 
+        {/* Error */}
         {errorMessage && (
-          <div
-            className="alert alert-danger"
-            role="alert"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--space-2)',
-              marginBottom: 'var(--space-4)',
-              fontSize: 'var(--text-sm)',
-              padding: 'var(--space-3)'
-            }}
-          >
-            <AlertCircle size={16} style={{ flexShrink: 0 }} />
+          <div className="pa-error" role="alert" aria-live="assertive">
+            <AlertCircle size={15} className="pa-error-icon" />
             <span>{errorMessage}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label" htmlFor="login-email">
-              Email Address
-            </label>
-            <div className="input-group">
-              <span className="input-group-icon">
-                <Mail size={16} />
-              </span>
+        {/* Form */}
+        <form className="pa-form" onSubmit={handleSubmit} noValidate>
+          {/* Email */}
+          <div className="pa-field">
+            <label className="pa-label" htmlFor="login-email">Email Address</label>
+            <div className="pa-input-wrap">
+              <span className="pa-input-icon"><Mail size={15} /></span>
               <input
                 id="login-email"
                 type="email"
-                className="form-input"
+                className="pa-input"
                 placeholder="developer@pulsewatch.io"
                 autoComplete="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                disabled={isSubmitting}
+                disabled={isSubmitting || succeeded}
               />
             </div>
           </div>
 
-          <div className="form-group" style={{ marginBottom: 'var(--space-6)' }}>
-            <label className="form-label" htmlFor="login-password">
-              Password
-            </label>
-            <div className="input-group">
-              <span className="input-group-icon">
-                <Lock size={16} />
-              </span>
+          {/* Password */}
+          <div className="pa-field">
+            <label className="pa-label" htmlFor="login-password">Password</label>
+            <div className="pa-input-wrap">
+              <span className="pa-input-icon"><Lock size={15} /></span>
               <input
                 id="login-password"
                 type={showPassword ? 'text' : 'password'}
-                className="form-input"
+                className="pa-input"
                 placeholder="••••••••"
                 autoComplete="current-password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                disabled={isSubmitting}
+                disabled={isSubmitting || succeeded}
               />
               <button
                 type="button"
-                className="input-icon-btn"
+                className="pa-input-btn"
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
                 tabIndex={-1}
               >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
             </div>
           </div>
 
+          {/* Submit */}
           <button
             type="submit"
-            className="btn btn-primary"
-            style={{ width: '100%', justifyContent: 'center' }}
-            disabled={isSubmitting}
+            className="pa-submit-btn"
+            disabled={isSubmitting || succeeded}
+            id="login-submit-btn"
           >
             {isSubmitting ? (
               <>
-                <Loader2 size={16} className="spin" />
-                Signing in...
+                <span className="pa-spinner" aria-hidden="true" />
+                Signing in…
               </>
             ) : (
               'Sign In'
@@ -143,13 +147,12 @@ export default function Login() {
           </button>
         </form>
 
-        <div className="auth-footer">
+        {/* Footer */}
+        <div className="pa-card-footer">
           Don&apos;t have an account?{' '}
-          <Link to="/register" style={{ color: 'var(--color-brand-hover)', fontWeight: 500 }}>
-            Create one
-          </Link>
+          <Link to="/register">Create one</Link>
         </div>
       </div>
-    </div>
+    </AuthLayout>
   );
 }

@@ -12,13 +12,17 @@ import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import LandingPage from './pages/LandingPage';
 
 export default function App() {
   return (
     <ToastProvider>
       <AuthProvider>
         <Routes>
-          {/* Public-only authentication routes (redirected to / if authenticated) */}
+          {/* Public landing page */}
+          <Route path="/" element={<LandingPage />} />
+
+          {/* Public-only authentication routes (redirected to /dashboard if authenticated) */}
           <Route element={<PublicOnlyRoute />}>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -27,7 +31,7 @@ export default function App() {
           {/* Protected workspace routes (redirected to /login if unauthenticated) */}
           <Route element={<ProtectedRoute />}>
             <Route element={<Layout />}>
-              <Route path="/" element={<Dashboard />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/monitors" element={<Monitors />} />
               <Route path="/monitors/:id" element={<MonitorDetail />} />
               <Route path="/incidents" element={<Incidents />} />

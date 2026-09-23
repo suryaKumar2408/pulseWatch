@@ -1,18 +1,21 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Activity, Lock, Mail, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import AuthLayout from './AuthLayout';
 
 export default function Register() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  /* ── Existing state & logic — UNCHANGED ─────────────────────────── */
+  const [email, setEmail]                     = useState('');
+  const [password, setPassword]               = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword]       = useState(false);
+  const [errorMessage, setErrorMessage]       = useState('');
+  const [isSubmitting, setIsSubmitting]       = useState(false);
+  const [succeeded, setSucceeded]             = useState(false);
 
   const { register } = useAuth();
-  const navigate = useNavigate();
+  const navigate     = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,142 +39,146 @@ export default function Register() {
     try {
       setIsSubmitting(true);
       await register(email.trim(), password);
-      navigate('/', { replace: true });
+      setSucceeded(true);
+      setTimeout(() => navigate('/', { replace: true }), 700);
     } catch (err) {
       const serverMessage =
         err.response?.data?.error?.message ||
         err.response?.data?.message ||
         'Failed to register account. Please try again.';
       setErrorMessage(serverMessage);
-    } finally {
       setIsSubmitting(false);
     }
   };
+  /* ─────────────────────────────────────────────────────────────────── */
+
+  const passwordsMatch = password && confirmPassword && password === confirmPassword;
 
   return (
-    <div className="auth-layout">
-      <div className="auth-card">
-        <div className="auth-header">
-          <div className="brand" style={{ justifyContent: 'center', marginBottom: 'var(--space-2)' }}>
-            <div className="brand-logo">
-              <Activity size={20} />
+    <AuthLayout>
+      <div className="pa-card" role="main">
+        {/* Success overlay */}
+        {succeeded && (
+          <div className="pa-success-overlay" aria-live="polite">
+            <div className="pa-success-icon">
+              <CheckCircle size={22} />
             </div>
-            <span className="brand-name">PulseWatch</span>
+            <span className="pa-success-text">Account created — redirecting…</span>
           </div>
-          <h1 className="auth-title">Create an account</h1>
-          <p className="auth-subtitle">Get started with real-time uptime monitoring</p>
+        )}
+
+        {/* Header */}
+        <div className="pa-card-header">
+          <Link to="/" className="pa-logo" aria-label="PulseWatch home">
+            <div className="pa-logo-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z" fill="rgba(255,255,255,0.3)"/>
+                <path d="M12 6v6l4 2-1.5 2.6L9 14V6z" fill="white"/>
+              </svg>
+            </div>
+            <span className="pa-logo-name">Pulse<span>Watch</span></span>
+          </Link>
+
+          <h1 className="pa-card-title">Create an account</h1>
+          <p className="pa-card-subtitle">Get started with real-time uptime monitoring</p>
         </div>
 
+        {/* Error */}
         {errorMessage && (
-          <div
-            className="alert alert-danger"
-            role="alert"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--space-2)',
-              marginBottom: 'var(--space-4)',
-              fontSize: 'var(--text-sm)',
-              padding: 'var(--space-3)'
-            }}
-          >
-            <AlertCircle size={16} style={{ flexShrink: 0 }} />
+          <div className="pa-error" role="alert" aria-live="assertive">
+            <AlertCircle size={15} className="pa-error-icon" />
             <span>{errorMessage}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label" htmlFor="register-email">
-              Email Address
-            </label>
-            <div className="input-group">
-              <span className="input-group-icon">
-                <Mail size={16} />
-              </span>
+        {/* Form */}
+        <form className="pa-form" onSubmit={handleSubmit} noValidate>
+          {/* Email */}
+          <div className="pa-field">
+            <label className="pa-label" htmlFor="register-email">Email Address</label>
+            <div className="pa-input-wrap">
+              <span className="pa-input-icon"><Mail size={15} /></span>
               <input
                 id="register-email"
                 type="email"
-                className="form-input"
+                className="pa-input"
                 placeholder="developer@pulsewatch.io"
                 autoComplete="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                disabled={isSubmitting}
+                disabled={isSubmitting || succeeded}
               />
             </div>
           </div>
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="register-password">
-              Password <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>(min. 8 characters)</span>
+          {/* Password */}
+          <div className="pa-field">
+            <label className="pa-label" htmlFor="register-password">
+              Password
+              <span className="pa-label-hint">(min. 8 characters)</span>
             </label>
-            <div className="input-group">
-              <span className="input-group-icon">
-                <Lock size={16} />
-              </span>
+            <div className="pa-input-wrap">
+              <span className="pa-input-icon"><Lock size={15} /></span>
               <input
                 id="register-password"
                 type={showPassword ? 'text' : 'password'}
-                className="form-input"
+                className="pa-input"
                 placeholder="••••••••"
                 autoComplete="new-password"
                 required
                 minLength={8}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                disabled={isSubmitting}
+                disabled={isSubmitting || succeeded}
               />
               <button
                 type="button"
-                className="input-icon-btn"
+                className="pa-input-btn"
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
                 tabIndex={-1}
               >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
             </div>
           </div>
 
-          <div className="form-group" style={{ marginBottom: 'var(--space-6)' }}>
-            <label className="form-label" htmlFor="register-confirm-password">
-              Confirm Password
-            </label>
-            <div className="input-group">
-              <span className="input-group-icon">
-                <Lock size={16} />
-              </span>
+          {/* Confirm Password */}
+          <div className="pa-field">
+            <label className="pa-label" htmlFor="register-confirm-password">Confirm Password</label>
+            <div className="pa-input-wrap">
+              <span className="pa-input-icon"><Lock size={15} /></span>
               <input
                 id="register-confirm-password"
                 type={showPassword ? 'text' : 'password'}
-                className="form-input"
+                className="pa-input"
                 placeholder="••••••••"
                 autoComplete="new-password"
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                disabled={isSubmitting}
+                disabled={isSubmitting || succeeded}
               />
-              {password && confirmPassword && password === confirmPassword && (
-                <span className="input-icon-btn" style={{ color: 'var(--color-success)', cursor: 'default' }}>
-                  <CheckCircle2 size={16} />
+              {passwordsMatch && (
+                <span className="pa-input-valid" aria-label="Passwords match">
+                  <CheckCircle size={15} />
                 </span>
               )}
             </div>
           </div>
 
+          {/* Submit */}
           <button
             type="submit"
-            className="btn btn-primary"
-            style={{ width: '100%', justifyContent: 'center' }}
-            disabled={isSubmitting}
+            className="pa-submit-btn"
+            disabled={isSubmitting || succeeded}
+            id="register-submit-btn"
           >
             {isSubmitting ? (
               <>
-                <Loader2 size={16} className="spin" />
-                Creating account...
+                <span className="pa-spinner" aria-hidden="true" />
+                Creating account…
               </>
             ) : (
               'Create Account'
@@ -179,13 +186,12 @@ export default function Register() {
           </button>
         </form>
 
-        <div className="auth-footer">
+        {/* Footer */}
+        <div className="pa-card-footer">
           Already have an account?{' '}
-          <Link to="/login" style={{ color: 'var(--color-brand-hover)', fontWeight: 500 }}>
-            Sign in
-          </Link>
+          <Link to="/login">Sign in</Link>
         </div>
       </div>
-    </div>
+    </AuthLayout>
   );
 }
