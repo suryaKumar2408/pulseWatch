@@ -14,8 +14,14 @@ export function AuthProvider({ children }) {
     }
   });
 
-  const [token, setToken] = useState(() => localStorage.getItem('pw_token'));
-  const [isLoading, setIsLoading] = useState(true);
+  const [token, setToken] = useState(() => {
+    const stored = localStorage.getItem('pw_token');
+    if (stored) {
+      api.defaults.headers.common['Authorization'] = `Bearer ${stored}`;
+    }
+    return stored;
+  });
+  const [isLoading, setIsLoading] = useState(() => Boolean(localStorage.getItem('pw_token')));
 
   // Initial session restoration & validation on mount
   useEffect(() => {
@@ -31,15 +37,18 @@ export function AuthProvider({ children }) {
       try {
         const { data } = await api.get('/api/v1/auth/me');
         if (active) {
-          setUser(data.data.user);
+          const verifiedUser = data.data.user;
+          setUser(verifiedUser);
           setToken(storedToken);
-          localStorage.setItem('pw_user', JSON.stringify(data.data.user));
+          localStorage.setItem('pw_user', JSON.stringify(verifiedUser));
+          api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
         }
       } catch {
         // Token expired, revoked, or server rejected
         if (active) {
           localStorage.removeItem('pw_token');
           localStorage.removeItem('pw_user');
+          delete api.defaults.headers.common['Authorization'];
           setUser(null);
           setToken(null);
         }
@@ -65,11 +74,17 @@ export function AuthProvider({ children }) {
 
       const { user: loggedInUser, token: authToken } = response.data.data;
 
+      // Update local storage and token headers synchronously
       localStorage.setItem('pw_token', authToken);
       localStorage.setItem('pw_user', JSON.stringify(loggedInUser));
+      if (authToken) {
+        api.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
+      }
 
+      // Update state synchronously
       setToken(authToken);
       setUser(loggedInUser);
+      setIsLoading(false);
 
       return { success: true, user: loggedInUser };
     } catch (err) {
@@ -94,11 +109,17 @@ export function AuthProvider({ children }) {
 
       const { user: registeredUser, token: authToken } = response.data.data;
 
+      // Update local storage and token headers synchronously
       localStorage.setItem('pw_token', authToken);
       localStorage.setItem('pw_user', JSON.stringify(registeredUser));
+      if (authToken) {
+        api.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
+      }
 
+      // Update state synchronously
       setToken(authToken);
       setUser(registeredUser);
+      setIsLoading(false);
 
       return { success: true, user: registeredUser };
     } catch (err) {
@@ -121,8 +142,10 @@ export function AuthProvider({ children }) {
     } finally {
       localStorage.removeItem('pw_token');
       localStorage.removeItem('pw_user');
+      delete api.defaults.headers.common['Authorization'];
       setToken(null);
       setUser(null);
+      setIsLoading(false);
     }
   }, []);
 
@@ -131,6 +154,7 @@ export function AuthProvider({ children }) {
     token,
     isAuthenticated: Boolean(token && user),
     isLoading,
+    loading: isLoading,
     login,
     register,
     logout,

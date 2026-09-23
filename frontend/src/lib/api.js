@@ -37,6 +37,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('pw_token');
       localStorage.removeItem('pw_user');
+      delete api.defaults.headers.common['Authorization'];
       // Only redirect if not already on an auth page to avoid infinite loops
       if (!window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/register')) {
         window.location.href = '/login';

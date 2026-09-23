@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 const navItems = [
-  { to: '/',          icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/monitors',  icon: Monitor,         label: 'Monitors' },
   { to: '/incidents', icon: AlertCircle,     label: 'Incidents' },
   { to: '/analytics', icon: BarChart3,       label: 'Analytics' },
@@ -48,7 +48,7 @@ export default function Sidebar({ isOpen = false, onClose }) {
           <NavLink
             key={to}
             to={to}
-            end={to === '/'}
+            end={to === '/dashboard'}
             className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
             onClick={onClose}
           >

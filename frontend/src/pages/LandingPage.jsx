@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
@@ -115,6 +116,8 @@ function useCountUp(target, duration = 1800, started = false) {
 
 /* ─── Main landing page component ────────────────────────────────────────── */
 export default function LandingPage() {
+  const { user, loading, isLoading } = useAuth();
+  const authLoading = loading !== undefined ? loading : isLoading;
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
@@ -186,6 +189,10 @@ export default function LandingPage() {
   const latencyCnt = useCountUp(142, 1400, analyticsVisible);
   const monitorsCnt = useCountUp(5, 1000, analyticsVisible);
   const incidentsCnt = useCountUp(2, 800, analyticsVisible);
+
+  if (!authLoading && user) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   /* ── Render ── */
   return (

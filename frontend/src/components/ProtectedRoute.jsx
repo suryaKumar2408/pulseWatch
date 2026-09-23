@@ -3,10 +3,11 @@ import { useAuth } from '../hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 
 export default function ProtectedRoute() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, loading } = useAuth();
   const location = useLocation();
+  const authLoading = loading !== undefined ? loading : isLoading;
 
-  if (isLoading) {
+  if (authLoading) {
     return (
       <div style={{
         display: 'flex',

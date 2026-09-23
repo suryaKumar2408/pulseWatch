@@ -3,9 +3,10 @@ import { useAuth } from '../hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 
 export default function PublicOnlyRoute() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, loading } = useAuth();
+  const authLoading = loading !== undefined ? loading : isLoading;
 
-  if (isLoading) {
+  if (authLoading) {
     return (
       <div style={{
         display: 'flex',
@@ -22,7 +23,7 @@ export default function PublicOnlyRoute() {
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <Outlet />;

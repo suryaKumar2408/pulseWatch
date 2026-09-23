@@ -40,7 +40,7 @@ export default function Register() {
       setIsSubmitting(true);
       await register(email.trim(), password);
       setSucceeded(true);
-      setTimeout(() => navigate('/', { replace: true }), 700);
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       const serverMessage =
         err.response?.data?.error?.message ||

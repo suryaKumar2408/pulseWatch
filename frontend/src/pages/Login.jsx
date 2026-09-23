@@ -31,7 +31,7 @@ export default function Login() {
       setIsSubmitting(true);
       await login(email.trim(), password);
       setSucceeded(true);
-      setTimeout(() => navigate(destination, { replace: true }), 600);
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       const serverMessage =
         err.response?.data?.error?.message ||
